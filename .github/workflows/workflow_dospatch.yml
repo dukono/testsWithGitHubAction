@@ -19,8 +19,7 @@ on:
           type: boolean
 jobs:
   read_inputs:
-    runs-on: ubuntu-
-    
+    runs-on: ubuntu-latest
     steps:
       - name: Debug inputs
         run: |
