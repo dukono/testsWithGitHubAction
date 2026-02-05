@@ -507,10 +507,21 @@ git status
 
 # Status corto (MUY ÚTIL)
 git status -s
-# ?? = untracked
-# M  = staged
-#  M = modified (not staged)
-# MM = staged + modified again
+# Formato: XY archivo
+# X = estado en staging (index)
+# Y = estado en working directory
+
+# Códigos más comunes:
+# ?? = untracked (archivo nuevo no añadido)
+# A  = added (archivo nuevo añadido al staging)
+# M  = modified (archivo modificado y en staging)
+#  M = modified (archivo modificado pero NO en staging)
+# MM = modified en staging + modificado de nuevo en working
+# D  = deleted (archivo eliminado y en staging)
+#  D = deleted (archivo eliminado pero NO en staging)
+# R  = renamed (archivo renombrado)
+# C  = copied (archivo copiado)
+# U  = updated but unmerged (conflicto sin resolver)
 
 # Con info de branch
 git status -sb
@@ -525,9 +536,11 @@ git status --porcelain
 **Interpretación del output:**
 
 ```bash
+# OUTPUT DE git status (verbose):
 On branch main
 Your branch is ahead of 'origin/main' by 2 commits
-→ Tienes 2 commits no pusheados
+→ Tienes 2 commits no pusheados (ahead)
+→ "behind" sería: commits remotos que no tienes localmente
 
 Changes to be committed:
 → Staging area (listo para commit)
@@ -537,6 +550,33 @@ Changes not staged for commit:
 
 Untracked files:
 → Archivos nuevos no en Git
+
+# OUTPUT DE git status -s (corto):
+ M archivo1.txt    # Modificado, NO en staging
+M  archivo2.txt    # Modificado, en staging
+MM archivo3.txt    # En staging + modificado de nuevo
+A  archivo4.txt    # Nuevo, añadido al staging
+?? archivo5.txt    # Nuevo, no añadido (untracked)
+D  archivo6.txt    # Eliminado, en staging
+ D archivo7.txt    # Eliminado, NO en staging
+R  old.txt -> new.txt  # Renombrado
+```
+
+**Entendiendo ahead/behind:**
+
+```bash
+# Ahead (adelantado): Tienes commits locales no pusheados
+Your branch is ahead of 'origin/main' by 2 commits
+→ Haz git push para sincronizar
+
+# Behind (atrasado): El remoto tiene commits que tú no tienes
+Your branch is behind 'origin/main' by 3 commits
+→ Haz git pull para sincronizar
+
+# Diverged (divergido): Ambos tienen commits diferentes
+Your branch and 'origin/main' have diverged,
+and have 2 and 3 different commits each, respectively
+→ Necesitas merge o rebase
 ```
 
 **Mejores prácticas:**
