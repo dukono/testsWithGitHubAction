@@ -12,6 +12,7 @@
 2. [git commit - Guardando la Historia](#2-git-commit---guardando-la-historia)
 3. [git status - Inspeccionando el Estado](#3-git-status---inspeccionando-el-estado)
 4. [git diff - Comparando Cambios](#4-git-diff---comparando-cambios)
+4.1 [Referencias de Commits: ~, ^, y {}](#41-referencias-de-commits---y-)
 5. [git log - Explorando la Historia](#5-git-log---explorando-la-historia)
 
 ### GESTIÓN DE RAMAS
@@ -743,6 +744,335 @@ git diff --color-moved
 
 ---
 
+## 4.1. Referencias de Commits: ~, ^, y {}
+[⬆️ Top](#tabla-de-contenidos)
+
+**¿Qué son?**
+Son operadores especiales para referenciar commits relativos a una posición dada (como HEAD o nombre de rama).
+
+### Operador `~` (Tilde) - Navegación Hacia Atrás por Primera Línea
+
+**Significado:** Navega hacia atrás en la historia siguiendo siempre la **primera línea de commits**.
+
+```
+HEAD~1  → 1 commit antes de HEAD (equivalente a HEAD^)
+HEAD~2  → 2 commits antes de HEAD
+HEAD~3  → 3 commits antes de HEAD
+HEAD~n  → n commits antes de HEAD siguiendo la primera línea
+```
+
+**Visualización:**
+```
+A ← B ← C ← D ← E (HEAD)
+│   │   │   │   │
+~4  ~3  ~2  ~1  ~0 (o simplemente HEAD)
+```
+
+**Ejemplos prácticos:**
+```bash
+# Ver el commit de hace 3 commits
+git show HEAD~3
+
+# Comparar con 5 commits atrás
+git diff HEAD~5 HEAD
+
+# Resetear al commit anterior
+git reset --soft HEAD~1
+
+# Ver cambios de un archivo hace 2 commits
+git show HEAD~2:archivo.txt
+```
+
+---
+
+### Operador `^` (Caret) - Selección de Líneas en Merges
+
+**Significado:** Selecciona **qué línea de commits** seguir cuando un commit tiene múltiples líneas de historia (merge commits).
+
+```
+HEAD^1  → Primera línea de commits (default, equivalente a HEAD^)
+HEAD^2  → Segunda línea de commits (rama mergeada)
+HEAD^3  → Tercera línea de commits (raro, en octopus merge)
+```
+
+**Visualización de merge:**
+```
+    A ← B ← C (rama feature)
+   /         \
+  D ← E ← F ← M (HEAD en main)
+              │
+         HEAD^1 = F (primera línea, main)
+         HEAD^2 = C (segunda línea, feature)
+```
+
+**Ejemplos prácticos:**
+```bash
+# Ver qué entró desde la rama mergeada
+git log HEAD^2
+
+# Comparar con la primera línea (rama principal)
+git diff HEAD^1 HEAD
+
+# Ver los cambios de la segunda línea
+git show HEAD^2
+
+# Comparar ambas líneas
+git diff HEAD^1 HEAD^2
+```
+
+---
+
+### Combinando `~` y `^`
+
+**Se pueden combinar para navegación compleja:**
+
+```bash
+HEAD~2^2   → Segunda línea del commit que está 2 commits atrás (si ese commit es un merge)
+HEAD^^     → Equivalente a HEAD~2 (2 commits atrás)
+HEAD^2~3   → Tres commits atrás desde la segunda línea
+```
+
+**Ejemplo visual básico:**
+```
+        A ← B ← C
+       /         \
+  D ← E ← F ← G ← M (HEAD)
+
+HEAD      → M (commit de merge)
+HEAD^     → G (o HEAD^1, primera línea)
+HEAD^2    → C (segunda línea de M, rama mergeada)
+HEAD^2~2  → A (dos commits atrás desde C: C→B→A)
+HEAD~1    → G (un commit atrás por primera línea)
+HEAD~2    → F (dos commits atrás por primera línea)
+HEAD^^    → F (equivalente a HEAD~2)
+
+Nota: HEAD^2 solo existe porque M es un merge commit.
+      Si HEAD apuntara a un commit normal, HEAD^2 daría error.
+```
+
+**Ejemplo visual con HEAD~2^2:**
+```
+    X ← Y          (rama lateral)
+   /     \
+  A ← B ← W ← G ← M (HEAD)
+
+HEAD      → M (merge commit)
+HEAD~1    → G (1 commit atrás)
+HEAD~2    → W (2 commits atrás, también es merge)
+HEAD~2^1  → B (primera línea del commit W)
+HEAD~2^2  → Y (segunda línea del commit W)
+
+Nota: HEAD~2^2 solo funciona si el commit que está 2 commits atrás (W) es un merge.
+      Si W no tiene segunda línea, HEAD~2^2 dará error.
+```
+
+**Ejemplos prácticos:**
+```bash
+# Ver el tercer commit de la segunda línea
+git show HEAD^2~3
+
+# Comparar ancestros complejos
+git diff HEAD~3 HEAD^2~1
+
+# Resetear a ancestro complejo
+git reset HEAD^^
+```
+
+---
+
+### Operador `{}` (Reflog) - Historial de Movimientos
+
+**Significado:** Accede al **historial de posiciones previas** de una referencia (HEAD, ramas, etc.).
+
+```
+HEAD@{0}  → Posición actual
+HEAD@{1}  → Dónde estaba HEAD en la operación anterior
+HEAD@{2}  → Dos operaciones atrás
+HEAD@{n}  → n operaciones atrás
+```
+
+**¿Qué operaciones mueven HEAD?**
+- commit, checkout, merge, pull, reset, rebase, cherry-pick, etc.
+
+**Visualización:**
+```bash
+git reflog
+# Salida:
+abc1234 HEAD@{0}: commit: Added feature X
+def5678 HEAD@{1}: checkout: moving from main to feature
+9ab0cde HEAD@{2}: pull: Fast-forward
+```
+
+**Ejemplos prácticos:**
+```bash
+# Ver dónde estaba HEAD hace 3 operaciones
+git show HEAD@{3}
+
+# Volver al estado antes del último pull
+git reset --hard HEAD@{1}
+
+# Ver commits traídos en el último pull
+git log HEAD@{1}..HEAD --oneline
+
+# Ver diferencias con estado previo
+git diff HEAD@{1} HEAD
+
+# Reflog de una rama específica
+git reflog show feature-branch
+
+# Ver estado hace 2 días
+git show HEAD@{2.days.ago}
+
+# Ver estado a una fecha específica
+git show main@{2024-01-15}
+```
+
+---
+
+### Tabla Resumen de Referencias
+
+| Operador | Propósito | Ejemplo | Resultado |
+|----------|-----------|---------|-----------|
+| `~n` | n commits atrás (primera línea) | `HEAD~3` | 3 commits antes de HEAD |
+| `^n` | n-ésima línea (en merges) | `HEAD^2` | Segunda línea del merge |
+| `@{n}` | n-ésima posición anterior (reflog) | `HEAD@{5}` | Dónde estaba hace 5 ops |
+| `^^` | Equivalente a `~2` | `HEAD^^` | 2 commits atrás |
+| `~n^m` | Combinación | `HEAD~2^2` | 2ª línea del commit que está 2 atrás |
+| `@{time}` | Posición en fecha/tiempo | `HEAD@{yesterday}` | Estado de ayer |
+
+---
+
+### Casos de Uso Prácticos
+
+**1. Ver qué traído en un pull:**
+```bash
+git log HEAD@{1}..HEAD --oneline
+git diff HEAD@{1} HEAD --name-status
+```
+
+**2. Deshacer el último commit manteniendo cambios:**
+```bash
+git reset --soft HEAD~1
+```
+
+**3. Ver qué se mergeó desde una rama:**
+```bash
+# Solo funciona si HEAD es un merge commit
+git log HEAD^2 --oneline
+
+# Si HEAD no es merge, usa el hash del merge:
+git log <hash-merge>^2 --oneline
+# O si sabes que el merge está 2 commits atrás:
+git log HEAD~2^2 --oneline
+```
+
+**4. Recuperar trabajo perdido:**
+```bash
+git reflog
+git checkout HEAD@{5}  # O el número que necesites
+```
+
+**5. Comparar con versión de ayer:**
+```bash
+git diff HEAD@{yesterday} HEAD
+```
+
+**6. Ver ancestros en merge complejo:**
+```bash
+# Ver commits únicos del segundo padre
+git log HEAD^1..HEAD^2 --oneline
+```
+
+---
+
+### Diferencias Clave
+
+**`HEAD~1` vs `HEAD^1`:**
+- En commits normales (con una sola línea de commits anterior): **Son idénticos**
+- En merge commits:
+  - `HEAD~1` → Siempre sigue la primera línea
+  - `HEAD^1` → Primera línea explícitamente
+  - `HEAD^2` → Segunda línea (rama mergeada)
+
+**`HEAD@{1}` vs `HEAD~1`:**
+- `HEAD~1` → Commit anterior en el grafo de commits
+- `HEAD@{1}` → Posición anterior de HEAD (puede ser cualquier commit)
+
+**Ejemplo:**
+```bash
+# Secuencia de operaciones:
+git checkout main      # HEAD en abc123
+git checkout feature   # HEAD en def456
+git checkout main      # HEAD en abc123 otra vez
+
+# Ahora:
+HEAD      → abc123 (main)
+HEAD~1    → 789xyz (commit anterior a abc123 en el grafo)
+HEAD@{1}  → def456 (donde estaba HEAD antes: feature)
+HEAD@{2}  → abc123 (donde estaba antes de eso)
+```
+
+---
+
+### ⚠️ Advertencia Importante sobre HEAD^2
+
+**HEAD^2 solo existe si el commit actual ES un merge commit:**
+
+```bash
+# Verificar si un commit es un merge:
+git rev-list --parents -n 1 HEAD
+# Si muestra 2+ hashes después del primero → es merge
+# Si muestra solo 2 hashes → NO es merge (1 línea)
+
+# Ejemplo de error común:
+git checkout main
+git log --oneline -1
+# abc123 Add feature X  ← commit normal, no merge
+
+git show HEAD^2
+# fatal: ambiguous argument 'HEAD^2': unknown revision or path not in the working tree.
+
+# Para ver la segunda línea de un merge anterior:
+git log --oneline --graph -5  # Identifica el merge commit
+git show <hash-merge>^2        # Usa el hash del merge
+# O si el merge está en HEAD~3:
+git show HEAD~3^2              # Funciona si HEAD~3 es merge
+```
+
+**Cómo identificar merge commits visualmente:**
+
+```bash
+# En git log:
+git log --oneline --graph --all
+# Los merges se ven así:
+#   *   a1b2c3d Merge branch 'feature' into main  ← MERGE commit
+#   |\  
+#   | * d4e5f6g Add feature
+#   * | h7i8j9k Fix bug
+#   |/  
+#   * k0l1m2n Initial commit
+```
+
+---
+
+### Mejores Prácticas
+
+```bash
+✓ Usa ~ para navegar historia lineal
+✓ Usa ^ para explorar merges
+✓ Usa @{} para deshacer operaciones recientes
+✓ Combina operadores para navegación compleja
+✓ Usa git reflog para ver historial de operaciones
+✓ Verifica que un commit sea merge antes de usar ^2
+
+✗ No confundas ~ (commits atrás) con @{} (historial)
+✗ No uses ^2 en commits sin merge (da error)
+✗ No abuses de combinaciones complejas (dificulta lectura)
+✗ No asumas que HEAD siempre es un merge
+```
+
+---
+
 ## 5. git log - Explorando la Historia
 [⬆️ Top](#tabla-de-contenidos)
 
@@ -1034,7 +1364,7 @@ Git merge puede operar de 3 formas diferentes:
                 \     /
    feature:      D---E
    
-   → Crea merge commit con 2 padres
+   → Crea merge commit con 2 líneas de commits
    → Preserva historia completa
    → Historia no lineal (ramificada)
 
@@ -2343,19 +2673,164 @@ git fetch
 git status
 # → Dice "have diverged" si hay commits locales y remotos
 
-# DESPUÉS de pull - verificar:
+# DESPUÉS de pull - verificar qué cambió:
 
-# 1. Ver qué se integró
-git log -5 --oneline
-# → Últimos 5 commits
+# 1. Ver commits traídos (usando reflog)
+git log HEAD@{1}..HEAD --oneline
+# → HEAD@{1} = posición antes del pull
+# → HEAD = posición actual
+# → Muestra SOLO commits nuevos traídos
 
-# 2. Ver si quedaron conflictos sin resolver
+# Alternativa con ORIG_HEAD:
+git log ORIG_HEAD..HEAD --oneline
+# → ORIG_HEAD también apunta al estado pre-pull
+
+# 2. Ver cambios en archivos traídos
+git diff --name-status HEAD@{1} HEAD
+# → Lista archivos modificados, añadidos, eliminados
+# → M = modified, A = added, D = deleted
+
+git diff --stat HEAD@{1} HEAD
+# → Resumen con estadísticas por archivo
+
+# 3. Ver diff completo de los cambios
+git diff HEAD@{1} HEAD
+# → Muestra todas las diferencias línea por línea
+# → Útil para revisar qué código cambió exactamente
+
+# 4. Ver detalle de cada commit traído
+git show <hash-commit>
+# → Muestra mensaje, autor, fecha, y diff del commit
+# → Repite para cada commit del log anterior
+
+# Ejemplo completo de revisión:
+git show HEAD~2  # Ver penúltimo commit
+git show HEAD~1  # Ver último commit
+git show HEAD    # Ver commit actual
+
+# 5. Ver qué archivos específicos cambiaron
+git diff --name-only HEAD@{1} HEAD
+# → Solo nombres de archivos, sin estadísticas
+
+git diff HEAD@{1} HEAD -- archivo.txt
+# → Diff de archivo específico
+
+# 6. Ver si quedaron conflictos sin resolver
 git status
 # → Debe estar limpio
+# → Si dice "Unmerged paths", hay conflictos pendientes
 
-# 3. Ver diferencias con remoto
+# 7. Ver diferencias con remoto (debe estar sincronizado)
 git diff origin/main
-# → Debería estar vacío
+# → Debería estar vacío si pull fue exitoso
+# → Si hay diferencias, tienes commits locales sin pushear
+
+# 8. Ver cuántos commits se trajeron
+git rev-list --count HEAD@{1}..HEAD
+# → Número de commits traídos
+
+# 9. Ver resumen visual con grafo
+git log HEAD@{1}..HEAD --oneline --graph --stat
+# → Combinación visual con archivos y estadísticas
+```
+
+**Ejemplo práctico completo - Después de pull:**
+
+```bash
+# Acabas de hacer: git pull
+# Quieres saber QUÉ cambió
+
+# Paso 1: Ver cuántos commits se trajeron
+$ git log HEAD@{1}..HEAD --oneline
+a1b2c3d (HEAD -> main, origin/main) Fix: Corregir bug en login
+d4e5f6g Feature: Añadir validación de email
+h7i8j9k Docs: Actualizar README
+
+# → Se trajeron 3 commits
+
+# Paso 2: Ver qué archivos cambiaron
+$ git diff --name-status HEAD@{1} HEAD
+M       src/auth/login.js
+A       src/validators/email.js
+M       README.md
+D       src/old-validator.js
+
+# → 2 modificados, 1 añadido, 1 eliminado
+
+# Paso 3: Ver estadísticas
+$ git diff --stat HEAD@{1} HEAD
+ README.md                | 15 ++++++++++++++-
+ src/auth/login.js        | 8 +++-----
+ src/old-validator.js     | 45 -------------------------------------------
+ src/validators/email.js  | 30 ++++++++++++++++++++++++++++
+ 4 files changed, 47 insertions(+), 51 deletions(-)
+
+# Paso 4: Ver detalle de commit específico
+$ git show a1b2c3d
+commit a1b2c3d...
+Author: John Doe <john@example.com>
+Date:   Mon Feb 10 10:30:00 2026
+
+    Fix: Corregir bug en login
+    
+    - Validación de contraseña mejorada
+    - Manejo de errores actualizado
+
+diff --git a/src/auth/login.js b/src/auth/login.js
+...
+(muestra el diff completo)
+
+# Paso 5: Ver diff de archivo específico
+$ git diff HEAD@{1} HEAD -- src/auth/login.js
+(muestra solo cambios en ese archivo)
+
+# Paso 6: Verificar sincronización con remoto
+$ git diff origin/main
+# (vacío = perfectamente sincronizado)
+```
+
+**Comandos rápidos de verificación post-pull:**
+
+```bash
+# Ver últimos 5 commits (incluyendo los traídos)
+git log -5 --oneline
+
+# Ver archivos modificados en últimos 3 commits
+git log -3 --name-status --oneline
+
+# Ver todo lo traído con contexto visual
+git log HEAD@{1}..HEAD --oneline --graph --decorate --stat
+
+# Comparar tu código actual vs hace 2 pulls
+git diff HEAD@{2} HEAD
+```
+
+**⚠️ Notas importantes sobre HEAD@{n}:**
+
+```bash
+# HEAD@{n} es del REFLOG (historial de operaciones)
+# Solo se mantiene por tiempo limitado (default 90 días)
+
+# Ver historial completo de HEAD:
+git reflog
+# Muestra todas las operaciones que movieron HEAD
+
+# Si hiciste múltiples operaciones después del pull:
+HEAD@{0}  → Estado actual
+HEAD@{1}  → Operación anterior (puede NO ser el pull)
+HEAD@{2}  → Dos operaciones atrás
+
+# Para asegurar que comparas con el pull correcto:
+git reflog
+# Busca la línea del pull
+# Usa ese número específico
+
+# Alternativa más segura si no estás seguro:
+# Anota el hash ANTES de hacer pull:
+git rev-parse HEAD  # Copia este hash
+git pull
+git log <hash-copiado>..HEAD --oneline
+# → Garantiza comparación correcta
 ```
 
 **Configuración recomendada:**
@@ -2487,7 +2962,7 @@ A---B---E---F
       C---D---M (main)
 
 Características:
-- Merge commit M con 2 padres
+- Merge commit M con 2 líneas de commits
 - Historia completa preservada
 - Graph no lineal
 - Hashes de C y D sin cambiar
