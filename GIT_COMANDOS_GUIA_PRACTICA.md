@@ -2027,8 +2027,8 @@ git for-each-ref --sort=-committerdate refs/heads/ --format='%(refname:short) %(
 
 **Formato personalizado con --format (Completo):**
 
-> 📖 **NOTA:** Para una referencia completa de todos los placeholders disponibles, 
-> formatos avanzados, condicionales y ejemplos con otros comandos (log, for-each-ref, 
+> 📖 **NOTA:** Para una referencia completa de todos los placeholders disponibles,
+> formatos avanzados, condicionales y ejemplos con otros comandos (log, for-each-ref,
 > show-ref, etc.), consulta la **[Sección 22: Referencias y Placeholders de Formato](#22-referencias-y-placeholders-de-formato)**.
 
 ```bash
@@ -2104,7 +2104,7 @@ git branch --format="%(refname:short) → %(upstream:short) %(upstream:track)"
 # Salida:
 # main → origin/main [up to date]
 # develop → origin/develop [ahead 2, behind 1]
-# feature/login →  
+# feature/login →
 
 # 3. Con tracking abreviado (símbolos)
 git branch --format="%(HEAD) %(refname:short) %(upstream:trackshort)"
@@ -2808,10 +2808,10 @@ Git merge puede operar de 3 formas diferentes:
 1. FAST-FORWARD (merge "rápido"):
    main:    A---B
    feature:      C---D
-   
+
    Resultado: main simplemente avanza al commit D
    main:    A---B---C---D
-   
+
    → No crea merge commit
    → Solo mueve el puntero de la rama
    → Historia lineal limpia
@@ -2821,17 +2821,17 @@ Git merge puede operar de 3 formas diferentes:
    main:    A---B---C
                 \
    feature:      D---E
-   
+
    Git usa 3 commits:
    - Ancestro común (B)
    - Último commit de main (C)
    - Último commit de feature (E)
-   
+
    Resultado: Se crea nuevo merge commit (M)
    main:    A---B---C---M
                 \     /
    feature:      D---E
-   
+
    → Crea merge commit con 2 líneas de commits
    → Preserva historia completa
    → Historia no lineal (ramificada)
@@ -3295,7 +3295,7 @@ git merge feature-x
 # Already up to date.
 
 Causa: feature-x no tiene commits nuevos vs main
-Solución: 
+Solución:
 - Verificar que estás en rama correcta
 - Verificar que feature-x tiene commits:
   git log main..feature-x
@@ -3903,7 +3903,7 @@ Paso a paso:
    - Descarga objetos nuevos (commits, trees, blobs)
    - Actualiza refs remotas (refs/remotes/origin/*)
    - NO toca tu working directory ni rama actual
-   
+
 2. MERGE o REBASE (integración):
    - Integra los cambios descargados en tu rama
    - Dos estrategias disponibles:
@@ -4240,7 +4240,7 @@ Author: John Doe <john@example.com>
 Date:   Mon Feb 10 10:30:00 2026
 
     Fix: Corregir bug en login
-    
+
     - Validación de contraseña mejorada
     - Manejo de errores actualizado
 
@@ -4948,8 +4948,8 @@ git log v1.0.0..v2.0.0 --oneline
 # FORMATO PERSONALIZADO (--format)
 # ============================================
 
-> 📖 **NOTA:** Para una referencia completa de todos los placeholders disponibles, 
-> formatos avanzados, condicionales y ejemplos con otros comandos (log, branch, 
+> 📖 **NOTA:** Para una referencia completa de todos los placeholders disponibles,
+> formatos avanzados, condicionales y ejemplos con otros comandos (log, branch,
 > for-each-ref, show-ref, etc.), consulta la **[Sección 22: Referencias y Placeholders de Formato](#22-referencias-y-placeholders-de-formato)**.
 
 # git tag también acepta placeholders como git branch
@@ -6147,13 +6147,13 @@ git log --format="Commit: %h%nAutor fecha: %ai%nCommitter fecha: %ci%nDiferencia
 
 ### Mejores prácticas
 
-✅ **Usar en scripts:** Ideal para automatización y CI/CD  
-✅ **Exportar datos:** CSV, JSON-like para análisis  
-✅ **Personalizar salidas:** Adaptar a tus necesidades  
+✅ **Usar en scripts:** Ideal para automatización y CI/CD
+✅ **Exportar datos:** CSV, JSON-like para análisis
+✅ **Personalizar salidas:** Adaptar a tus necesidades
 ✅ **Combinación con otros comandos:** Potente con grep, awk, etc.
 
-❌ **No abusar de colores en scripts:** Solo para terminal  
-❌ **No confiar en orden sin --sort:** Especifica orden explícitamente  
+❌ **No abusar de colores en scripts:** Solo para terminal
+❌ **No confiar en orden sin --sort:** Especifica orden explícitamente
 ❌ **Cuidado con caracteres especiales:** Sanitizar para shell
 
 ---
@@ -6244,7 +6244,7 @@ git config --global alias.unstage "reset HEAD --"
 
 ---
 
-**Última actualización:** Febrero 2026  
+**Última actualización:** Febrero 2026
 **Versión:** 1.0.0
 
 Este documento cubre los 21 comandos Git más importantes con ejemplos prácticos del mundo real. Para entender el funcionamiento interno de Git, consulta `GIT_FUNCIONAMIENTO_INTERNO.md`.
